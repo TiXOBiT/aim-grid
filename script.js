@@ -21,7 +21,7 @@ const firebaseConfig = typeof __firebase_config !== 'undefined'
         storageBucket: "aim-grid.firebasestorage.app",
         messagingSenderId: "1:343812555641:web:b50726700d057247eb65a8",
         appId: "YOUR_ACTUAL_APP_ID"
-        measurementId: "G-5PTNKM38EZ"
+        // measurementId: "G-5PTNKM38EZ"
       }; 
 
 const app = initializeApp(firebaseConfig);
