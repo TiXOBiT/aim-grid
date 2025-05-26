@@ -31,7 +31,7 @@ const HUD_OFFSET_Y = 70;
 const TARGET_SHAPES = ['circle', 'square', 'triangle', 'hexagon'];
 
 
-let app;
+// let app;
 let auth;
 let db;
 let userId;
