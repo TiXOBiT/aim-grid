@@ -2,11 +2,32 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; 
-
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 
 // --- Global Variables & Configuration ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-aim-trainer-app';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" }; 
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !! IMPORTANT: REPLACE THE PLACEHOLDER VALUES BELOW WITH YOUR ACTUAL        !!
+// !! FIREBASE PROJECT CONFIGURATION WHEN DEPLOYING TO GITHUB PAGES OR       !!
+// !! ANY ENVIRONMENT WHERE __firebase_config IS NOT AUTOMATICALLY PROVIDED. !!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+const firebaseConfig = typeof __firebase_config !== 'undefined' 
+    ? JSON.parse(__firebase_config) 
+    : { 
+        apiKey: "AIzaSyCTx2FD1T1lZikmezvl8Eu_ETCpNpqyCsQ", 
+        authDomain: "aim-grid.firebaseapp.com", 
+        projectId: "aim-grid",
+        storageBucket: "aim-grid.firebasestorage.app",
+        messagingSenderId: "1:343812555641:web:b50726700d057247eb65a8",
+        appId: "YOUR_ACTUAL_APP_ID"
+        measurementId: "G-5PTNKM38EZ"
+      }; 
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 const HUD_OFFSET_Y = 70; 
 const TARGET_SHAPES = ['circle', 'square', 'triangle', 'hexagon'];
 
@@ -109,7 +130,7 @@ const defaultUserSettings = {
 let userSettings = { ...defaultUserSettings };
 
 
-// DOM Elements
+// DOM Elements (Ensure all are correctly referenced from index.html)
 const mainMenuModal = document.getElementById('mainMenuModal');
 const configureDrillModal = document.getElementById('configureDrillModal');
 const configureDrillTitle = document.getElementById('configureDrillTitle');
@@ -200,6 +221,7 @@ const finalDrillTypeElement = document.getElementById('finalDrillType');
 const achievementNotification = document.getElementById('achievementNotification');
 
 // --- Sound Initialization ---
+// (Sound functions remain the same as v2.3)
 function initSounds() {
     sfxVolumeNode = new Tone.Volume().toDestination(); 
     setSfxVolume(userSettings.sfxVolume); 
@@ -259,8 +281,10 @@ function playSound(sound, time = Tone.now(), note = 'C4', duration = '8n') {
     try {
         if (sound instanceof Tone.NoiseSynth) {
             sound.triggerAttackRelease(duration, time);
-        } else if (sound instanceof Tone.Synth || sound instanceof Tone.MembraneSynth) {
-            sound.triggerAttackRelease(note, duration, time);
+        } else if (sound instanceof Tone.Synth || sound instanceof Tone.MembraneSynth) { // Check if it's a synth type that takes a note
+             if (sound.triggerAttackRelease) { // Ensure method exists
+                sound.triggerAttackRelease(note, duration, time);
+            }
         }
     } catch (e) {
         console.warn("Error playing sound:", e);
@@ -276,6 +300,7 @@ function setSfxVolume(value) {
 
 
 // --- Theme Management ---
+// (Theme functions remain the same as v2.3)
 function applyTheme(themeName) {
     document.body.className = themeName; 
     userSettings.currentTheme = themeName;
@@ -323,6 +348,8 @@ async function initFirebase() {
                     console.error("Error during sign-in:", error);
                     loadingStatus.textContent = 'Auth Uplink Failed. Refresh.';
                     userIdDisplay.textContent = `UserID: Link Error`;
+                     // Attempt to enable some buttons even on auth failure for basic offline play?
+                    // For now, buttons remain disabled as most features depend on user data.
                 }
             }
         });
@@ -1400,7 +1427,7 @@ function flickingTargetHit() {
         if (currentTarget.targetData.shieldHP <= 0) {
             currentTarget.targetData.isShielded = false; 
             drawTargetShape(currentTarget, currentTarget.targetData.size, userSettings.flickingTargetColor, userSettings.targetOutlineColor, currentTarget.targetData);
-        } else { // Shield still active, redraw with shield (might be redundant if shield is just an aura)
+        } else { 
              drawTargetShape(currentTarget, currentTarget.targetData.size, userSettings.flickingTargetColor, userSettings.targetOutlineColor, currentTarget.targetData);
         }
         updateHUD();
@@ -1488,8 +1515,7 @@ function targetSwitchingTargetHit(hitIndex) {
             if (pixiApp.stage.children.includes(target)) pixiApp.stage.removeChild(target);
             target.destroy({ children: true });
         }
-        spawnTarget_TargetSwitching(hitIndex); // Replace bomb
-        // Don't immediately activate next, let player react
+        spawnTarget_TargetSwitching(hitIndex); 
         updateHUD();
         return;
     }
@@ -1500,7 +1526,7 @@ function targetSwitchingTargetHit(hitIndex) {
         if (target.targetData.shieldHP <= 0) {
             target.targetData.isShielded = false;
         }
-        drawTargetShape(target, target.targetData.size, userSettings.flickingTargetColor, userSettings.targetOutlineColor, target.targetData); // Redraw with/without shield
+        drawTargetShape(target, target.targetData.size, userSettings.flickingTargetColor, userSettings.targetOutlineColor, target.targetData); 
         updateHUD();
         return;
     }
@@ -2173,4 +2199,5 @@ window.onload = async () => {
     mainMenuModal.classList.remove('hidden');
     mainMenuModal.classList.add('active');
 };
+
 
