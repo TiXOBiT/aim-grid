@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aim Trainer Pro // Neon Grid v2.4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.10/browser/pixi.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-neon-grid"> <div id="gameContainer">
+        <canvas id="pixiCanvas"></canvas> 
+        <div id="awaitingInputMessage" class="hidden">Click or Move Mouse to Start!</div>
+
+        <div id="mainMenuModal" class="modal active main-menu-modal">
+             <div class="modal-content">
+                <button id="settingsButton" class="modal-button settings-icon-button" disabled title="System Config">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+                <h2 class="modal-title">AIM GRID</h2>
+                <p id="loadingStatus" class="mb-2 text-gray-400 text-sm">Connecting to the Grid...</p>
+                <div id="userProfileInfo" class="mb-4">
+                    Level: <span id="userLevelDisplay">1</span> (<span id="userTierDisplay">Bronze</span>) | XP: <span id="userXPDisplay">0</span>/<span id="userNextLevelXPDisplay">1000</span>
+                </div>
+                <button id="startDailyWarmupButton" class="modal-button utility-button" disabled>Daily Warm-up</button>
+                <hr class="border-pink-500 my-3 w-3/4 mx-auto">
+                <div class="button-grid">
+                    <button id="startFlickingButton" class="modal-button" disabled>Flick Shot Matrix</button>
+                    <button id="startRecoilFlickButton" class="modal-button" disabled>Recoil Control</button>
+                    <button id="startTrackingButton" class="modal-button" disabled>Vector Trace</button>
+                    <button id="startReactiveTrackingButton" class="modal-button" disabled>Reactive Trace</button>
+                    <button id="startDynamicFlickButton" class="modal-button" disabled>Dynamic Shift</button>
+                    <button id="startPrecisionTimingButton" class="modal-button" disabled>Timing Window</button>
+                    <button id="startTargetBlitzButton" class="modal-button" disabled>Target Blitz</button>
+                    <button id="startTargetSwitchingButton" class="modal-button" disabled>Switch Track</button>
+                    <button id="startMicroFlickingButton" class="modal-button" disabled>Micro Flick</button>
+                    <button id="startMacroFlickingButton" class="modal-button" disabled>Macro Flick</button>
+                </div>
+                <hr class="border-pink-500 my-3 w-3/4 mx-auto">
+                <div class="utility-button-row">
+                    <button id="analyticsButton" class="modal-button modal-button-secondary utility-button" disabled>Analytics</button>
+                    <button id="leaderboardButton" class="modal-button modal-button-secondary utility-button" disabled>Leaderboards</button>
+                    <button id="achievementsButton" class="modal-button modal-button-secondary utility-button" disabled>Achievements</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="configureDrillModal" class="modal">
+            <div class="modal-content">
+                <h2 id="configureDrillTitle" class="modal-title">Configure Drill</h2>
+                <div class="input-group" id="configDurationGroup">
+                    <label for="drillDurationInput">Duration (seconds, 15-300):</label>
+                    <input type="number" id="drillDurationInput" min="15" max="300" step="1">
+                </div>
+                <div class="input-group hidden" id="configNumTargetsGroup">
+                    <label for="drillNumTargetsInput">Number of Targets (5-100):</label>
+                    <input type="number" id="drillNumTargetsInput" min="5" max="100" step="1">
+                </div>
+                <div class="input-group hidden" id="configTimeLimitGroup">
+                    <label for="drillTimeLimitInput">Overall Time Limit (s, 10-300):</label>
+                    <input type="number" id="drillTimeLimitInput" min="10" max="300" step="1">
+                </div>
+                <div id="drillConfigErrorMessages" class="text-red-400 mb-4"></div>
+                <button id="confirmStartDrillButton" class="modal-button">Launch Sequence</button>
+                <button id="cancelDrillConfigButton" class="modal-button modal-button-secondary">Abort</button>
+            </div>
+        </div>
+        
+        <div id="routineSummaryModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">Warm-up Complete!</h2>
+                <ul id="routineSummaryList"></ul>
+                <button id="routineOkButton" class="modal-button mt-4">Return to Hub</button>
+            </div>
+        </div>
+
+        <div id="achievementsModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">Achievements Unlocked</h2>
+                <ul id="achievementsList"></ul>
+                <button id="achievementsOkButton" class="modal-button mt-4">Close</button>
+            </div>
+        </div>
+        <div id="leaderboardModal" class="modal">
+            <div class="modal-content">
+                <h2 id="leaderboardTitle" class="modal-title">Leaderboard: Flick Shot Matrix</h2> <p id="leaderboardLoadingStatus" class="text-gray-400 mb-2">Loading scores...</p>
+                <ul id="leaderboardList"></ul>
+                <button id="leaderboardOkButton" class="modal-button mt-4">Close</button>
+            </div>
+        </div>
+         <div id="analyticsModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">Performance Analytics</h2>
+                <p id="analyticsLoadingStatus" class="text-gray-400 mb-2">Calculating stats...</p>
+                <ul id="analyticsSummaryList"></ul>
+                <button id="analyticsOkButton" class="modal-button mt-4">Close</button>
+            </div>
+        </div>
+
+
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">System Config</h2>
+                <div class="input-group">
+                    <label for="themeSelector">Theme:</label>
+                    <select id="themeSelector">
+                        <option value="theme-neon-grid">Neon Grid</option>
+                        <option value="theme-arcade-light">Arcade Light</option>
+                        <option value="theme-cosmic-dark">Cosmic Dark</option>
+                    </select>
+                </div>
+                <hr class="border-pink-500 my-4">
+                <h3 class="font-orbitron text-lg text-pink-400 mb-2">Audio</h3>
+                 <div class="input-group">
+                    <label for="sfxVolumeInput">SFX Volume (0-100):</label>
+                    <input type="range" id="sfxVolumeInput" min="0" max="100" step="1">
+                </div>
+                <hr class="border-pink-500 my-4">
+                <h3 class="font-orbitron text-lg text-pink-400 mb-2">Gameplay</h3>
+                <div class="input-group">
+                    <label for="sensitivityInput">Mouse Sensitivity (0.1 - 5.0):</label>
+                    <input type="number" id="sensitivityInput" min="0.1" max="5" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="recoilStrengthInput">Recoil Strength (px, 0-50):</label>
+                    <input type="number" id="recoilStrengthInput" min="0" max="50" step="1">
+                </div>
+                 <div class="input-group">
+                    <label for="shieldProbabilityInput">Shield Probability (%):</label>
+                    <input type="number" id="shieldProbabilityInput" min="0" max="100" step="5">
+                </div>
+                <div class="input-group">
+                    <label for="bombProbabilityInput">Bomb Probability (%):</label>
+                    <input type="number" id="bombProbabilityInput" min="0" max="100" step="5">
+                </div>
+                 <div class="input-group">
+                    <label for="bombPenaltyInput">Bomb Penalty (Score):</label>
+                    <input type="number" id="bombPenaltyInput" min="0" max="1000" step="50">
+                </div>
+                <hr class="border-pink-500 my-4">
+                <h3 class="font-orbitron text-lg text-pink-400 mb-2">Crosshair</h3>
+                <div class="input-group">
+                    <label for="crosshairTypeInput">Type:</label>
+                    <select id="crosshairTypeInput">
+                        <option value="dot">Dot</option>
+                        <option value="cross">Cross</option>
+                        <option value="circle">Circle</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="crosshairColorInput">Color:</label>
+                    <input type="color" id="crosshairColorInput">
+                </div>
+                <div class="input-group">
+                    <label for="crosshairSizeInput">Size (px):</label>
+                    <input type="number" id="crosshairSizeInput" min="1" max="50" step="1">
+                </div>
+                <div class="input-group" id="crosshairThicknessGroup">
+                    <label for="crosshairThicknessInput">Thickness (px):</label>
+                    <input type="number" id="crosshairThicknessInput" min="1" max="10" step="1">
+                </div>
+                <div class="input-group" id="crosshairGapGroup">
+                    <label for="crosshairGapInput">Center Gap (px):</label>
+                    <input type="number" id="crosshairGapInput" min="0" max="20" step="1">
+                </div>
+                <hr class="border-pink-500 my-4">
+                <h3 class="font-orbitron text-lg text-pink-400 mb-2">Targets</h3>
+                 <div class="input-group">
+                    <label for="targetShapeInput">Shape:</label>
+                     <select id="targetShapeInput">
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                        <option value="triangle">Triangle</option>
+                        <option value="hexagon">Hexagon</option>
+                        <option value="random">Random</option>
+                    </select>
+                </div>
+                 <div class="input-group">
+                    <label for="flickingTargetColorInput">Flicking Target Color:</label>
+                    <input type="color" id="flickingTargetColorInput">
+                </div>
+                <div class="input-group">
+                    <label for="trackingTargetColorInput">Tracking Target Color:</label>
+                    <input type="color" id="trackingTargetColorInput">
+                </div>
+                 <div class="input-group">
+                    <label for="targetOutlineColorInput">Target Outline Color:</label>
+                    <input type="color" id="targetOutlineColorInput">
+                </div>
+
+                <div id="settingsErrorMessages" class="text-red-400 mb-4"></div>
+                <button id="saveSettingsButton" class="modal-button">Apply & Save</button>
+                <button id="cancelSettingsButton" class="modal-button modal-button-secondary">Revert</button>
+            </div>
+        </div>
+
+        <div id="scoreModal" class="modal">
+            <div class="modal-content">
+                <h2 class="modal-title">Report // Drill Ended</h2>
+                <p class="text-xl mb-2">Score/Time: <span id="finalScore" class="text-yellow-400">0</span> <span id="scoreUnit"></span></p>
+                <p class="text-lg mb-1">Accuracy: <span id="finalAccuracy" class="text-green-400">0</span>%</p>
+                <p class="text-lg mb-1"><span id="hitsLabel">Hits</span>: <span id="finalHits" class="text-blue-400">0</span></p>
+                <p class="text-lg mb-4"><span id="missesLabel">Misses</span>: <span id="finalMisses" class="text-red-400">0</span></p>
+                <p class="text-md mb-4 text-gray-400">Drill: <span id="finalDrillType">N/A</span></p>
+                <button id="playAgainButton" class="modal-button">Re-engage</button> 
+                <button id="backToMenuButton" class="modal-button modal-button-secondary">Return to Hub</button>
+            </div>
+        </div>
+
+        <div id="hud" class="hud hidden">
+            <div class="hud-info">Score: <span id="hudScoreValue">0</span></div>
+            <div class="hud-info" id="hudTimeLabel">Time: <span id="hudTimeValue">60</span>s</div>
+            <div class="hud-info" id="hudTargetCountLabel" style="display:none;">Targets: <span id="hudTargetCountValue">0/0</span></div>
+            <div class="hud-info">Accuracy: <span id="hudAccuracyValue">100</span>%</div>
+            <button id="endGameButton">Abort Drill</button> 
+        </div>
+        <div id="achievementNotification" class="hidden">Achievement Unlocked!</div>
+    </div>
+    <div id="userIdDisplay">UserID: Syncing...</div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
